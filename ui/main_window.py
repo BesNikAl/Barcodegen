@@ -48,7 +48,7 @@ class MainWindow(QMainWindow):
         )
 
         self.setWindowIcon(QIcon(str(icon_path)))
-        self.resize(1400, 900)
+        self.resize(1000, 700)
         self.setMinimumSize(1000, 700)
 
         self.init_ui()
@@ -195,8 +195,8 @@ class MainWindow(QMainWindow):
         vertical_splitter.addWidget(history_group)
 
         vertical_splitter.setSizes([
-            700,
-            250
+            550,
+            400
         ])
 
         main_layout.addWidget(vertical_splitter)
