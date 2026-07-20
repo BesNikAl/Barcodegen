@@ -31,100 +31,41 @@ IDE:
 
 На текущем этапе реализовано:
 
-✔ генерация DataMatrix ECC200
+✔ Генерация DataMatrix ECC200
 
-✔ масштабирование
+✔ Предпросмотр с возможностью масштабирования
 
-✔ история
+✔ История с сохранением в history.json
 
-✔ сохранение истории в JSON
+✔ Тёмная тема (Dark Theme)
 
-✔ предпросмотр
+✔ Импорт истории из CSV:
 
-✔ Dark Theme
+✔ Поддерживаются файлы с одной колонкой (data) и двумя колонками (data, comment)
 
----
+✔ Автоматическое определение разделителя
 
-# Планируемые типы штрихкодов
+✔ Поддержка UTF-8 и UTF-8 BOM
 
-Следующие версии должны добавить:
+✔ Пропуск дубликатов и некорректных записей
 
-- QR Code
-- Code128
-- PDF417
-- EAN13
-- GS1 DataMatrix
+✔ Статистика импортированных и пропущенных записей в строке состояния
+
+✔ Интерфейс: InputPanel, PreviewWidget, HistoryManager
+
+✔ Комментарии к записям истории (колонка «Комментарий» вместо «Дата»)
 
 ---
 
 # Планируемые функции
 
-Импорт
+- Типы штрихкодов: QR, Code128, EAN13, GS1 DataMatrix
 
-- TXT
-- CSV
-- Excel
+- Импорт: TXT, Excel
 
-Экспорт
+- Экспорт: PDF, PNG, SVG, BMP
 
-- PDF
-- PNG
-- SVG
-- BMP
-
-Дополнительно
-
-- Настройки
-- Выбор темы
-- Печать
-- Настройка размеров модулей
-- Генерация серий
-- Предпросмотр печати
-- Windows Installer
-
----
-
-# Структура проекта
-
-BarcodeGen/
-
-    main.py
-
-    core/
-        datamatrix_generator.py
-        history_manager.py
-        validator.py
-        pdf_exporter.py
-        settings.py
-
-    ui/
-        main_window.py
-
-        widgets/
-            input_panel.py
-            preview_widget.py
-            info_panel.py
-            zoom_panel.py
-            history_table.py
-
-        styles/
-            dark_theme.py
-
-    resources/
-        icons/
-        fonts/
-        images/
-
-    data/
-        history.json
-
-    logs/
-
-    build.bat
-
-    BarcodeGen.spec
-
-    requirements.txt
+- Дополнительно: Настройки, Выбор темы, Печать, Настройка размеров модулей, Генерация серий, Предпросмотр печати, Windows Installer
 
 ---
 
@@ -150,10 +91,10 @@ BarcodeGen.spec
 
 Скрипт выполняет следующие действия:
 
-1. удаляет временную папку `build`;
-2. удаляет предыдущую сборку `dist`;
-3. запускает `BarcodeGen.spec`;
-4. отображает результат сборки.
+1. Удаляет временную папку `build`;
+2. Удаляет предыдущую сборку `dist`;
+3. Запускает `BarcodeGen.spec`;
+4. Отображает результат сборки.
 
 ---
 
@@ -177,22 +118,44 @@ dist/
 
 ---
 
-### Структура итоговой папки приложения
-
-По мере развития проекта итоговая структура сборки должна иметь следующий вид:
+### Структура проекта
 
 ```
 BarcodeGen/
-│
-├── BarcodeGen.exe
+├── main.py                 # Точка входа
+├── core/                   # Бизнес-логика (не зависит от PyQt)
+│   ├── __init__.py
+│   ├── csv_importer.py     # Импорт из CSV
+│   ├── datamatrix_generator.py
+│   ├── history_manager.py
+│   ├── pdf_exporter.py
+│   ├── settings.py
+│   └── validator.py
+├── ui/                     # Пользовательский интерфейс
+│   ├── __init__.py
+│   ├── main_window.py
+│   └── widgets/
+│       ├── __init__.py
+│       ├── history_table.py
+│       ├── info_panel.py
+│       ├── input_panel.py
+│       ├── preview_widget.py
+│       └── zoom_panel.py
+│   ├── styles/
+│       └── dark_theme.py
+├── resources/              # Иконки, шрифты, изображения
+│   ├── fonts
+│   ├── icons
+│   └── images
 ├── data/
-│   └── history.json
+│   └── history.json        # Файл истории
 ├── logs/
-├── resources/
-│   ├── icons/
-│   ├── fonts/
-│   └── images/
-└── ...
+├── docs/
+│   └──CHANGELOG.md
+├── build.bat               # Скрипт сборки
+├── BarcodeGen.spec         # Конфигурация PyInstaller
+├── README.md
+└── requirements.txt
 ```
 
 Все пользовательские данные должны храниться рядом с приложением и не требовать установки дополнительных компонентов.
@@ -474,23 +437,6 @@ DataMatrix отображается всегда один.
 Вынести тему в отдельный файл.
 
 ---
-
-# Текущее состояние проекта
-
-Реализовано:
-
-- DataMatrix ECC200
-- История
-- Масштабирование
-- Предпросмотр
-
-В работе:
-
-- Одинарный выбор строки истории
-- Обновление записи истории
-- Исправление поведения HeaderView
-
-После завершения этих задач переходить к Validator и PDF Export.
 
 ## Ссылки на исходные файлы
 
