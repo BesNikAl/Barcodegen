@@ -519,4 +519,4 @@ DataMatrix отображается всегда один.
     - [`preview_widget.py`](https://raw.githubusercontent.com/BesNikAl/Barcodegen/master/ui/widgets/preview_widget.py)
     - [`zoom_panel.py`](https://raw.githubusercontent.com/BesNikAl/Barcodegen/master/ui/widgets/zoom_panel.py)
   - **styles/**
-    - [`dark_theme.py`](https://raw.githubusercontent.com/BesNikAl/Barcodegen/master/styles/dark_theme.py)
+    - [`dark_theme.py`](https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/ui/styles/dark_theme.py)
