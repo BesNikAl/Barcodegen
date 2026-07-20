@@ -5,7 +5,10 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[('.venv\\Lib\\site-packages\\pylibdmtx\\libdmtx-64.dll', 'pylibdmtx')],
-    datas=[],
+    datas=[
+        ("resources", "resources"),
+        ("data/history.json", "data"),
+    ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -32,6 +35,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon="resources/icons/Barcodegen.ico",
 )
 coll = COLLECT(
     exe,
@@ -41,4 +45,5 @@ coll = COLLECT(
     upx=True,
     upx_exclude=[],
     name='BarcodeGen',
+    contents_directory=".",
 )

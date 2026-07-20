@@ -2,7 +2,11 @@ from core.datamatrix_generator import DataMatrixGenerator
 from core.history_manager import HistoryManager
 from core.csv_importer import CsvImporter
 from ui.widgets.input_panel import InputPanel
+from core.settings import get_app_path
+from pathlib import Path
+import sys
 
+from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt
 import re
 from PyQt6.QtWidgets import (
@@ -31,7 +35,19 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("DataMatrix Studio")
+        self.setWindowTitle("BarCodeGen")
+        if getattr(sys, "frozen", False):
+            base_path = Path(sys.executable).resolve().parent
+        else:
+            base_path = Path(__file__).resolve().parents[2]
+
+        icon_path = get_app_path(
+            "resources",
+            "icons",
+            "Barcodegen.ico",
+        )
+
+        self.setWindowIcon(QIcon(str(icon_path)))
         self.resize(1400, 900)
         self.setMinimumSize(1000, 700)
 
