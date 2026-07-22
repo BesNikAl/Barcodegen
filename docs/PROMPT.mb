@@ -3,10 +3,31 @@
 Перед началом работы:
 
 1. Полностью проанализируй проект, используя только код из текущего Git-репозитория https://github.com/BesNikAl/Barcodegen/tree/master.
-2. Для доступа к файлам используй **raw-ссылки**, перечисленные в разделе «Ссылки на исходные файлы» файла `README.md` (они ведут на содержимое каждого `.py`-файла).
+2. Для доступа к файлам используй **raw-ссылки**, перечисленные в разделе «Ссылки на исходные файлы» ниже (они ведут на содержимое каждого `.py`-файла).
 3. Изучи документы:
-   - `README.md` (получить по ссылке из README, если она там есть, или запросить у меня);
-   - `docs/CHANGELOG.md` (ссылка на raw-версию уже указана в README).
+   **Ссылки на исходные файлы**
+   
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/main.py
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/BarcodeGen.spec
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/build.bat
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/requirements.txt
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/core/__init__.py
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/core/csv_importer.py
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/core/datamatrix_generator.py
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/core/history_manager.py
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/core/pdf_exporter.py
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/core/settings.py
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/core/validator.py
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/docs/CHANGELOG.md
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/ui/main_window.py
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/ui/__init__.py
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/ui/widgets/__init__.py
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/ui/widgets/history_table.py
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/ui/widgets/info_panel.py
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/ui/widgets/input_panel.py
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/ui/widgets/preview_widget.py
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/ui/widgets/zoom_panel.py
+   https://raw.githubusercontent.com/BesNikAl/Barcodegen/refs/heads/master/ui/styles/dark_theme.py.
 4. Считай `README.md` главным документом проекта, содержащим архитектурные решения и текущий статус.
 5. Считай `CHANGELOG.md` журналом изменений — все внесённые правки должны быть в нём отражены.
 6. Работай только с кодом, который доступен через raw-ссылки из README. Не используй сторонние источники.
