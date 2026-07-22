@@ -1,5 +1,8 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap, QImage
+from PIL import Image
+from PIL.ImageQt import ImageQt  # Для конвертации PIL -> QImage/QPixmap
+from io import BytesIO
 from PyQt6.QtWidgets import (
     QWidget,
     QLabel,
@@ -32,9 +35,20 @@ class PreviewWidget(QWidget):
 
         layout.addWidget(self.scroll_area)
 
-    def set_pixmap(self, pixmap: QPixmap):
+    def set_pixmap(self, pil_image: Image.Image | None):
 
-        self.original_pixmap = pixmap
+        if pil_image is None:
+            self.original_pixmap = None
+            self.preview_label.clear()
+            return
+
+        # Безопасная конвертация PIL -> QPixmap (избегаем ImageQt.toqpixmap крашей)
+        buffer = BytesIO()
+        pil_image.save(buffer, format="PNG")
+        buffer.seek(0)
+
+        qt_image = QImage.fromData(buffer.getvalue())
+        self.original_pixmap = QPixmap.fromImage(qt_image)
 
         self.update_scale()
 

@@ -317,14 +317,10 @@ class MainWindow(QMainWindow):
 
         text = self.input_panel.txt_data.text()
 
-        pixmap = self.generator.generate(
-            text
-        )
+        image = self.generator.generate(text)
 
-        if pixmap:
-            self.preview_widget.set_pixmap(
-                pixmap
-            )
+        if image:
+            self.preview_widget.set_pixmap(image)
 
     def validate_input(self, text: str):
 

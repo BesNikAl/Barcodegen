@@ -1,9 +1,5 @@
-from io import BytesIO
-
 from PIL import Image
 from pylibdmtx.pylibdmtx import encode
-
-from PyQt6.QtGui import QPixmap, QImage
 
 
 class DataMatrixGenerator:
@@ -11,7 +7,8 @@ class DataMatrixGenerator:
     def __init__(self):
         pass
 
-    def generate(self, data: str):
+    def generate(self, data: str) -> Image.Image | None:
+        """Возвращает PIL.Image (как указано в архитектуре)."""
 
         if not data:
             return None
@@ -25,20 +22,7 @@ class DataMatrixGenerator:
                 encoded.pixels
             )
 
-            buffer = BytesIO()
-
-            image.save(
-                buffer,
-                format="PNG"
-            )
-
-            qt_image = QImage.fromData(
-                buffer.getvalue()
-            )
-
-            return QPixmap.fromImage(
-                qt_image
-            )
+            return image
 
         except Exception as error:
             print(f"Ошибка генерации DataMatrix: {error}")
