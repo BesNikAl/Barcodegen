@@ -244,23 +244,15 @@ class MainWindow(QMainWindow):
 
         # Изменили данные
         if item.column() == 1:
+            display_text = item.text()
+            storage_text = Validator.normalize_for_storage(display_text)
 
-            text = item.text()
-
-            if self.history.update(row, text):
-
+            if self.history.update(row, storage_text):
                 if row == self.table_history.currentRow():
-                    self.input_panel.txt_data.setText(text)
-
+                    self.input_panel.txt_data.setText(display_text)  # показываем с GS
             else:
-
                 self.update_history_table()
-
-                self.statusBar().showMessage(
-                    "Такая запись уже существует",
-                    3000
-                )
-
+                self.statusBar().showMessage("Такая запись уже существует", 3000)
             return
 
         # Изменили комментарий
@@ -276,20 +268,46 @@ class MainWindow(QMainWindow):
             )
 
     def on_text_changed(self):
+        # Получаем то, что сейчас в поле
+        current_text = self.input_panel.txt_data.text()
 
-        text = self.input_panel.txt_data.text()
+        # Преобразуем реальный GS в видимый "GS"
+        display_text = Validator.normalize_for_display(current_text)
 
-        if not self.validate_input(text):
-            # Очищаем предпросмотр при некорректных данных
+        # Если была замена — обновляем поле
+        if display_text != current_text:
+            cursor_pos = self.input_panel.txt_data.cursorPosition()
+            self.input_panel.txt_data.setText(display_text)
+            self.input_panel.txt_data.setCursorPosition(cursor_pos)
+
+        # Для хранения и генерации используем реальный символ
+        storage_text = Validator.normalize_for_storage(display_text)
+
+        if not self.validate_input(storage_text):
             self.preview_widget.set_pixmap(None)
             return
 
-        image = self.generator.generate(text)
+        # === Цветовое выделение GS ===
+        if 'GS' in display_text:
+            self.input_panel.txt_data.setStyleSheet("""
+                QLineEdit {
+                    background-color: #1e3a2f;
+                    color: #aaffaa;
+                    border: 1px solid #4ade80;
+                    font-weight: bold;
+                }
+            """)
+            self.input_panel.txt_data.setToolTip("Содержит символ GS (Group Separator \\x1D)")
+        else:
+            self.input_panel.txt_data.setStyleSheet("")
 
+        # Генерация
+        image = self.generator.generate(storage_text)
         if image:
             self.preview_widget.set_pixmap(image)
 
-    def validate_input(self, text: str):
+    def validate_input(self, text: str) -> bool:
+        """Проверяет данные. Не сбрасывает стиль GS при успешной валидации."""
 
         if not Validator.validate_data(text):
             self.input_panel.txt_data.setStyleSheet(
@@ -297,7 +315,8 @@ class MainWindow(QMainWindow):
             )
             return False
 
-        self.input_panel.txt_data.setStyleSheet("")
+        # Успешная валидация — НЕ сбрасываем стиль полностью!
+        # (выделение GS будет управляться в on_text_changed)
         return True
 
     def on_zoom_changed(self, value):
@@ -312,26 +331,18 @@ class MainWindow(QMainWindow):
 
     def on_add_clicked(self):
 
-        text = self.input_panel.txt_data.text()
+        display_text = self.input_panel.txt_data.text()
+        # Преобразуем отображаемый текст обратно в реальный (с GS)
+        storage_text = Validator.normalize_for_storage(display_text)
 
-        if not self.validate_input(text):
+        if not self.validate_input(storage_text):
             return
 
-        if self.history.add(text):
-
+        if self.history.add(storage_text):
             self.update_history_table()
-
-            self.statusBar().showMessage(
-                "Запись добавлена",
-                3000
-            )
-
+            self.statusBar().showMessage("Запись добавлена", 3000)
         else:
-
-            self.statusBar().showMessage(
-                "Такая запись уже существует",
-                3000
-            )
+            self.statusBar().showMessage("Такая запись уже существует", 3000)
 
     def on_delete_clicked(self):
 
@@ -429,22 +440,16 @@ class MainWindow(QMainWindow):
         self.table_history.setRowCount(len(records))
 
         for row, record in enumerate(records):
+            self.table_history.setItem(row, 0, QTableWidgetItem(str(row + 1)))
+
+            # Отображаем GS как текст "GS"
+            display_data = Validator.normalize_for_display(record["data"])
             self.table_history.setItem(
-                row,
-                0,
-                QTableWidgetItem(str(row + 1))
+                row, 1, QTableWidgetItem(display_data)
             )
 
             self.table_history.setItem(
-                row,
-                1,
-                QTableWidgetItem(record["data"])
-            )
-
-            self.table_history.setItem(
-                row,
-                2,
-                QTableWidgetItem(record.get("comment", ""))
+                row, 2, QTableWidgetItem(record.get("comment", ""))
             )
 
         self.table_history.resizeColumnsToContents()
