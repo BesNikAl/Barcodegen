@@ -317,6 +317,11 @@ class MainWindow(QMainWindow):
 
         text = self.input_panel.txt_data.text()
 
+        if not self.validate_input(text):
+            # Очищаем предпросмотр при некорректных данных
+            self.preview_widget.set_pixmap(None)
+            return
+
         image = self.generator.generate(text)
 
         if image:
