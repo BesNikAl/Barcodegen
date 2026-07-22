@@ -54,6 +54,7 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(1000, 700)
 
         self.init_ui()
+        self._updating_text = False
         self.apply_dark_theme()
 
         self.generator = DataMatrixGenerator()
@@ -75,9 +76,9 @@ class MainWindow(QMainWindow):
 
         self.input_panel = InputPanel()
 
-        main_layout.addWidget(
-            self.input_panel
-        )
+        main_layout.addWidget(self.input_panel)
+        # Ограничиваем высоту панели ввода
+        self.input_panel.setMaximumHeight(80)
 
         # ==================================================
         # Центральная область
@@ -249,7 +250,7 @@ class MainWindow(QMainWindow):
 
             if self.history.update(row, storage_text):
                 if row == self.table_history.currentRow():
-                    self.input_panel.txt_data.setText(display_text)  # показываем с GS
+                    self.input_panel.txt_data.setPlainText(display_text)  # отображаем с GS
             else:
                 self.update_history_table()
                 self.statusBar().showMessage("Такая запись уже существует", 3000)
@@ -268,55 +269,65 @@ class MainWindow(QMainWindow):
             )
 
     def on_text_changed(self):
-        # Получаем то, что сейчас в поле
-        current_text = self.input_panel.txt_data.text()
-
-        # Преобразуем реальный GS в видимый "GS"
-        display_text = Validator.normalize_for_display(current_text)
-
-        # Если была замена — обновляем поле
-        if display_text != current_text:
-            cursor_pos = self.input_panel.txt_data.cursorPosition()
-            self.input_panel.txt_data.setText(display_text)
-            self.input_panel.txt_data.setCursorPosition(cursor_pos)
-
-        # Для хранения и генерации используем реальный символ
-        storage_text = Validator.normalize_for_storage(display_text)
-
-        if not self.validate_input(storage_text):
-            self.preview_widget.set_pixmap(None)
+        if hasattr(self, '_updating_text') and self._updating_text:
             return
 
-        # === Цветовое выделение GS ===
-        if 'GS' in display_text:
-            self.input_panel.txt_data.setStyleSheet("""
-                QLineEdit {
-                    background-color: #1e3a2f;
-                    color: #aaffaa;
-                    border: 1px solid #4ade80;
-                    font-weight: bold;
-                }
-            """)
-            self.input_panel.txt_data.setToolTip("Содержит символ GS (Group Separator \\x1D)")
-        else:
-            self.input_panel.txt_data.setStyleSheet("")
+        self._updating_text = True
 
-        # Генерация
-        image = self.generator.generate(storage_text)
-        if image:
-            self.preview_widget.set_pixmap(image)
+        try:
+            current_text = self.input_panel.txt_data.toPlainText()
+            cursor = self.input_panel.txt_data.textCursor()
+            old_position = cursor.position()
+
+            display_text = Validator.normalize_for_display(current_text)
+            storage_text = Validator.normalize_for_storage(display_text)
+
+            updated = display_text != current_text
+
+            if updated:
+                self.input_panel.txt_data.setPlainText(display_text)
+
+            if not self.validate_input(storage_text):
+                self.preview_widget.set_pixmap(None)
+                return
+
+            # Rich text GS
+            if 'GS' in display_text:
+                html = display_text.replace(
+                    'GS',
+                    '<span style="background-color: #ffffff; color: #000000; font-weight: bold; padding: 1px 3px; border-radius: 3px;">GS</span>'
+                )
+                self.input_panel.txt_data.setHtml(html)
+            elif updated:
+                self.input_panel.txt_data.setPlainText(display_text)
+
+            # Восстановление курсора
+            if updated:
+                position_diff = current_text.count('\x1D') * 1  # каждая замена +1 символ
+                new_position = old_position + position_diff
+                new_position = min(new_position, len(display_text))
+
+                cursor = self.input_panel.txt_data.textCursor()
+                cursor.setPosition(new_position)
+                self.input_panel.txt_data.setTextCursor(cursor)
+
+            image = self.generator.generate(storage_text)
+            if image:
+                self.preview_widget.set_pixmap(image)
+
+        finally:
+            self._updating_text = False
 
     def validate_input(self, text: str) -> bool:
-        """Проверяет данные. Не сбрасывает стиль GS при успешной валидации."""
+        """Валидация. Не сбрасывает rich text стиль."""
 
         if not Validator.validate_data(text):
-            self.input_panel.txt_data.setStyleSheet(
-                "border: 2px solid red;"
-            )
+            # Для QTextEdit используем border через stylesheet
+            self.input_panel.txt_data.setStyleSheet("border: 2px solid red;")
             return False
 
-        # Успешная валидация — НЕ сбрасываем стиль полностью!
-        # (выделение GS будет управляться в on_text_changed)
+        # При успехе не трогаем стиль (rich text управляется в on_text_changed)
+        self.input_panel.txt_data.setStyleSheet("")
         return True
 
     def on_zoom_changed(self, value):
@@ -330,9 +341,7 @@ class MainWindow(QMainWindow):
         )
 
     def on_add_clicked(self):
-
-        display_text = self.input_panel.txt_data.text()
-        # Преобразуем отображаемый текст обратно в реальный (с GS)
+        display_text = self.input_panel.txt_data.toPlainText()
         storage_text = Validator.normalize_for_storage(display_text)
 
         if not self.validate_input(storage_text):
@@ -483,9 +492,10 @@ class MainWindow(QMainWindow):
         if current_row >= len(records):
             return
 
-        self.input_panel.txt_data.setText(
+        display_data = Validator.normalize_for_display(
             records[current_row]["data"]
         )
+        self.input_panel.txt_data.setPlainText(display_data)
 
         self.statusBar().showMessage(
             "Данные загружены из истории",
