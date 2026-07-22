@@ -1,6 +1,7 @@
 from core.datamatrix_generator import DataMatrixGenerator
 from core.history_manager import HistoryManager
 from core.csv_importer import CsvImporter
+from core.validator import Validator
 from ui.widgets.input_panel import InputPanel
 from core.settings import get_app_path
 from pathlib import Path
@@ -346,22 +347,13 @@ class MainWindow(QMainWindow):
 
     def validate_input(self, text: str):
 
-        if len(text) > 500:
+        if not Validator.validate_data(text):
             self.input_panel.txt_data.setStyleSheet(
                 "border: 2px solid red;"
             )
-
-            return False
-
-        if re.search(r"[А-Яа-яЁё]", text):
-            self.input_panel.txt_data.setStyleSheet(
-                "border: 2px solid red;"
-            )
-
             return False
 
         self.input_panel.txt_data.setStyleSheet("")
-
         return True
 
     def on_zoom_changed(self, value):
