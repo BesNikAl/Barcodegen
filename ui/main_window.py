@@ -84,22 +84,32 @@ class MainWindow(QMainWindow):
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
 
-        # Левая панель
+        # Левая панель (кнопки)
 
-        info_group = QGroupBox("Информация")
+        buttons_group = QGroupBox("Управление")
 
-        info_layout = QVBoxLayout()
+        buttons_layout = QVBoxLayout()
 
-        self.lbl_char_count = QLabel("Количество символов: 0")
-        self.lbl_matrix_size = QLabel("Размер матрицы: -")
-        self.lbl_symbol_size = QLabel("Размер символа: -")
+        self.btn_delete = QPushButton("Удалить")
+        self.btn_clear = QPushButton("Очистить")
+        self.btn_import_csv = QPushButton("Импорт CSV")
 
-        info_layout.addWidget(self.lbl_char_count)
-        info_layout.addWidget(self.lbl_matrix_size)
-        info_layout.addWidget(self.lbl_symbol_size)
-        info_layout.addStretch()
+        # Скругление для всех кнопок (включая "Добавить")
+        button_style = """
+                    QPushButton {
+                        border-radius: 6px;
+                        padding: 8px;
+                    }
+                """
+        for btn in [self.btn_delete, self.btn_clear, self.btn_import_csv]:
+            btn.setStyleSheet(button_style)
 
-        info_group.setLayout(info_layout)
+        buttons_layout.addWidget(self.btn_delete)
+        buttons_layout.addWidget(self.btn_clear)
+        buttons_layout.addWidget(self.btn_import_csv)
+        buttons_layout.addStretch()
+
+        buttons_group.setLayout(buttons_layout)
 
         # Центральная панель
 
@@ -125,7 +135,7 @@ class MainWindow(QMainWindow):
 
         zoom_group.setLayout(zoom_layout)
 
-        splitter.addWidget(info_group)
+        splitter.addWidget(buttons_group)
         splitter.addWidget(self.preview_widget)
         splitter.addWidget(zoom_group)
 
@@ -153,7 +163,7 @@ class MainWindow(QMainWindow):
 
         self.table_history.setColumnCount(3)
         self.table_history.setHorizontalHeaderLabels(
-            ["№", "Данные", "Комментарий"]
+            ["id", "Данные", "Комментарий"]
         )
 
         header = self.table_history.horizontalHeader()
@@ -175,19 +185,7 @@ class MainWindow(QMainWindow):
             QHeaderView.ResizeMode.ResizeToContents
         )
 
-        buttons_layout = QHBoxLayout()
-
-        self.btn_delete = QPushButton("Удалить")
-        self.btn_clear = QPushButton("Очистить")
-        self.btn_import_csv = QPushButton("Импорт CSV")
-
-        buttons_layout.addWidget(self.btn_delete)
-        buttons_layout.addWidget(self.btn_clear)
-        buttons_layout.addWidget(self.btn_import_csv)
-        buttons_layout.addStretch()
-
         history_layout.addWidget(self.table_history)
-        history_layout.addLayout(buttons_layout)
 
         history_group.setLayout(history_layout)
 
@@ -227,6 +225,7 @@ class MainWindow(QMainWindow):
                 background-color: #D32F2F;
                 border: none;
                 padding: 8px;
+                border-radius: 6px;
             }
 
             QPushButton:hover {
@@ -317,24 +316,6 @@ class MainWindow(QMainWindow):
     def on_text_changed(self):
 
         text = self.input_panel.txt_data.text()
-
-        self.lbl_char_count.setText(
-            f"Количество символов: {len(text)}"
-        )
-
-        if not self.validate_input(text):
-            return
-
-        if len(text) == 0:
-            self.lbl_matrix_size.setText(
-                "Размер матрицы: -"
-            )
-
-            return
-
-        self.lbl_matrix_size.setText(
-            "Размер матрицы: Авто"
-        )
 
         pixmap = self.generator.generate(
             text
