@@ -14,12 +14,16 @@ class InputPanel(QWidget):
         super().__init__()
 
         layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)  # убираем отступы
 
         self.lbl_data = QLabel("Данные:")
 
+        # QTextEdit с высотой как у кнопки
         self.txt_data = QTextEdit()
-        self.txt_data.setMaximumHeight(60)  # ← Ограничиваем высоту
-        self.txt_data.setMinimumHeight(35)  # минимальная высота
+        self.txt_data.setMaximumHeight(36)
+        self.txt_data.setMinimumHeight(36)
+        self.txt_data.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # убираем скролл
+        self.txt_data.setAlignment(Qt.AlignmentFlag.AlignVCenter)  # центрирование по вертикали
         self.txt_data.setPlaceholderText(
             "Введите данные для DataMatrix... (GS поддерживается)"
         )

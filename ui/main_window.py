@@ -78,7 +78,7 @@ class MainWindow(QMainWindow):
 
         main_layout.addWidget(self.input_panel)
         # Ограничиваем высоту панели ввода
-        self.input_panel.setMaximumHeight(80)
+        self.input_panel.setMaximumHeight(50)
 
         # ==================================================
         # Центральная область
