@@ -29,6 +29,7 @@ from PyQt6.QtWidgets import (
 
 
 from ui.widgets.preview_widget import PreviewWidget
+from ui.styles.dark_theme import get_dark_stylesheet
 
 
 class MainWindow(QMainWindow):
@@ -201,47 +202,8 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(vertical_splitter)
 
     def apply_dark_theme(self):
-
-        self.setStyleSheet("""
-            QWidget {
-                background-color: #252525;
-                color: white;
-                font-size: 10pt;
-            }
-
-            QGroupBox {
-                border: 1px solid #444;
-                margin-top: 8px;
-                padding-top: 10px;
-            }
-
-            QLineEdit {
-                background-color: #303030;
-                border: 1px solid #555;
-                padding: 6px;
-            }
-
-            QPushButton {
-                background-color: #D32F2F;
-                border: none;
-                padding: 8px;
-                border-radius: 6px;
-            }
-
-            QPushButton:hover {
-                background-color: #E53935;
-            }
-
-            QTableWidget {
-                background-color: #303030;
-                gridline-color: #444;
-            }
-
-            QHeaderView::section {
-                background-color: #404040;
-                padding: 5px;
-            }
-        """)
+        """Применяет тёмную тему из отдельного модуля."""
+        self.setStyleSheet(get_dark_stylesheet())
 
     def connect_signals(self):
         self.input_panel.txt_data.textChanged.connect(
