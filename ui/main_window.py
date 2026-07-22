@@ -54,7 +54,6 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(1000, 700)
 
         self.init_ui()
-        self._updating_text = False
         self.apply_dark_theme()
 
         self.generator = DataMatrixGenerator()
@@ -76,9 +75,9 @@ class MainWindow(QMainWindow):
 
         self.input_panel = InputPanel()
 
-        main_layout.addWidget(self.input_panel)
-        # Ограничиваем высоту панели ввода
-        self.input_panel.setMaximumHeight(50)
+        main_layout.addWidget(
+            self.input_panel
+        )
 
         # ==================================================
         # Центральная область
@@ -245,15 +244,23 @@ class MainWindow(QMainWindow):
 
         # Изменили данные
         if item.column() == 1:
-            display_text = item.text()
-            storage_text = Validator.normalize_for_storage(display_text)
 
-            if self.history.update(row, storage_text):
+            text = item.text()
+
+            if self.history.update(row, text):
+
                 if row == self.table_history.currentRow():
-                    self.input_panel.txt_data.setPlainText(display_text)  # отображаем с GS
+                    self.input_panel.txt_data.setText(text)
+
             else:
+
                 self.update_history_table()
-                self.statusBar().showMessage("Такая запись уже существует", 3000)
+
+                self.statusBar().showMessage(
+                    "Такая запись уже существует",
+                    3000
+                )
+
             return
 
         # Изменили комментарий
@@ -269,64 +276,27 @@ class MainWindow(QMainWindow):
             )
 
     def on_text_changed(self):
-        if hasattr(self, '_updating_text') and self._updating_text:
+
+        text = self.input_panel.txt_data.text()
+
+        if not self.validate_input(text):
+            # Очищаем предпросмотр при некорректных данных
+            self.preview_widget.set_pixmap(None)
             return
 
-        self._updating_text = True
+        image = self.generator.generate(text)
 
-        try:
-            current_text = self.input_panel.txt_data.toPlainText()
-            cursor = self.input_panel.txt_data.textCursor()
-            old_position = cursor.position()
+        if image:
+            self.preview_widget.set_pixmap(image)
 
-            display_text = Validator.normalize_for_display(current_text)
-            storage_text = Validator.normalize_for_storage(display_text)
-
-            updated = display_text != current_text
-
-            if updated:
-                self.input_panel.txt_data.setPlainText(display_text)
-
-            if not self.validate_input(storage_text):
-                self.preview_widget.set_pixmap(None)
-                return
-
-            # Rich text GS
-            if 'GS' in display_text:
-                html = display_text.replace(
-                    'GS',
-                    '<span style="background-color: #ffffff; color: #000000; font-weight: bold; padding: 1px 3px; border-radius: 3px;">GS</span>'
-                )
-                self.input_panel.txt_data.setHtml(html)
-            elif updated:
-                self.input_panel.txt_data.setPlainText(display_text)
-
-            # Восстановление курсора
-            if updated:
-                position_diff = current_text.count('\x1D') * 1  # каждая замена +1 символ
-                new_position = old_position + position_diff
-                new_position = min(new_position, len(display_text))
-
-                cursor = self.input_panel.txt_data.textCursor()
-                cursor.setPosition(new_position)
-                self.input_panel.txt_data.setTextCursor(cursor)
-
-            image = self.generator.generate(storage_text)
-            if image:
-                self.preview_widget.set_pixmap(image)
-
-        finally:
-            self._updating_text = False
-
-    def validate_input(self, text: str) -> bool:
-        """Валидация. Не сбрасывает rich text стиль."""
+    def validate_input(self, text: str):
 
         if not Validator.validate_data(text):
-            # Для QTextEdit используем border через stylesheet
-            self.input_panel.txt_data.setStyleSheet("border: 2px solid red;")
+            self.input_panel.txt_data.setStyleSheet(
+                "border: 2px solid red;"
+            )
             return False
 
-        # При успехе не трогаем стиль (rich text управляется в on_text_changed)
         self.input_panel.txt_data.setStyleSheet("")
         return True
 
@@ -341,17 +311,27 @@ class MainWindow(QMainWindow):
         )
 
     def on_add_clicked(self):
-        display_text = self.input_panel.txt_data.toPlainText()
-        storage_text = Validator.normalize_for_storage(display_text)
 
-        if not self.validate_input(storage_text):
+        text = self.input_panel.txt_data.text()
+
+        if not self.validate_input(text):
             return
 
-        if self.history.add(storage_text):
+        if self.history.add(text):
+
             self.update_history_table()
-            self.statusBar().showMessage("Запись добавлена", 3000)
+
+            self.statusBar().showMessage(
+                "Запись добавлена",
+                3000
+            )
+
         else:
-            self.statusBar().showMessage("Такая запись уже существует", 3000)
+
+            self.statusBar().showMessage(
+                "Такая запись уже существует",
+                3000
+            )
 
     def on_delete_clicked(self):
 
@@ -449,16 +429,22 @@ class MainWindow(QMainWindow):
         self.table_history.setRowCount(len(records))
 
         for row, record in enumerate(records):
-            self.table_history.setItem(row, 0, QTableWidgetItem(str(row + 1)))
-
-            # Отображаем GS как текст "GS"
-            display_data = Validator.normalize_for_display(record["data"])
             self.table_history.setItem(
-                row, 1, QTableWidgetItem(display_data)
+                row,
+                0,
+                QTableWidgetItem(str(row + 1))
             )
 
             self.table_history.setItem(
-                row, 2, QTableWidgetItem(record.get("comment", ""))
+                row,
+                1,
+                QTableWidgetItem(record["data"])
+            )
+
+            self.table_history.setItem(
+                row,
+                2,
+                QTableWidgetItem(record.get("comment", ""))
             )
 
         self.table_history.resizeColumnsToContents()
@@ -492,10 +478,9 @@ class MainWindow(QMainWindow):
         if current_row >= len(records):
             return
 
-        display_data = Validator.normalize_for_display(
+        self.input_panel.txt_data.setText(
             records[current_row]["data"]
         )
-        self.input_panel.txt_data.setPlainText(display_data)
 
         self.statusBar().showMessage(
             "Данные загружены из истории",
