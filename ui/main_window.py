@@ -183,7 +183,7 @@ class MainWindow(QMainWindow):
     def on_history_data_edited(self, row: int, display_text: str):
         if self.history.update(row, display_text):
             if row == self.history_table.current_row():
-                self.input_panel.txt_data.setPlainText(display_text)
+                self.input_panel.txt_data.setText(display_text)
         else:
             self.update_history_table()
             self.statusBar().showMessage("Такая запись уже существует", 3000)
@@ -194,7 +194,7 @@ class MainWindow(QMainWindow):
 
     def on_text_changed(self):
 
-        text = self.input_panel.txt_data.toPlainText()
+        text = self.input_panel.txt_data.text()
 
         if not self.validate_input(text):
             # Очищаем предпросмотр при некорректных данных
@@ -222,7 +222,7 @@ class MainWindow(QMainWindow):
 
     def on_add_clicked(self):
 
-        text = self.input_panel.txt_data.toPlainText()
+        text = self.input_panel.txt_data.text()
 
         if not self.validate_input(text):
             return
@@ -341,9 +341,19 @@ class MainWindow(QMainWindow):
         if current_row >= len(records):
             return
 
-        self.input_panel.txt_data.setPlainText(
-            records[current_row]["data"]
-        )
+        text = records[current_row]["data"]
+
+        # Блокируем textChanged, чтобы не вызвать повторную генерацию
+        self.input_panel.txt_data.blockSignals(True)
+        self.input_panel.txt_data.setText(text)
+        self.input_panel.txt_data.blockSignals(False)
+
+        # Обновляем предпросмотр вручную
+        if self.validate_input(text):
+            image = self.generator.generate(text)
+            self.preview_widget.set_pixmap(image if image else None)
+        else:
+            self.preview_widget.set_pixmap(None)
 
         self.statusBar().showMessage(
             "Данные загружены из истории",
