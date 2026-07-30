@@ -13,8 +13,8 @@ class HistoryTable(QWidget):
     """Таблица истории. Отвечает только за отображение. Не работает с JSON."""
 
     current_row_changed = pyqtSignal(int)
-    data_edited = pyqtSignal(int, str)      # row, text
-    comment_edited = pyqtSignal(int, str)   # row, comment
+    data_edited = pyqtSignal(int, str)
+    comment_edited = pyqtSignal(int, str)
 
     def __init__(self, parent=None):
         super().__init__(parent)

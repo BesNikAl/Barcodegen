@@ -1,6 +1,7 @@
 from core.datamatrix_generator import DataMatrixGenerator
 from core.history_manager import HistoryManager
 from core.csv_importer import CsvImporter
+from core.validator import Validator
 from ui.widgets.input_panel import InputPanel
 from ui.widgets.preview_widget import PreviewWidget
 from ui.widgets.zoom_panel import ZoomPanel
@@ -339,8 +340,6 @@ class MainWindow(QMainWindow):
         records = self.history.get_all()
         if current_row >= len(records):
             return
-
-        self.table.setItem(row, 1, QTableWidgetItem(record["data"]))
 
         self.input_panel.txt_data.setPlainText(
             records[current_row]["data"]
