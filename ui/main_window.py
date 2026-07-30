@@ -1,7 +1,6 @@
 from core.datamatrix_generator import DataMatrixGenerator
 from core.history_manager import HistoryManager
 from core.csv_importer import CsvImporter
-from core.validator import Validator
 from ui.widgets.input_panel import InputPanel
 from ui.widgets.preview_widget import PreviewWidget
 from ui.widgets.zoom_panel import ZoomPanel
@@ -181,9 +180,7 @@ class MainWindow(QMainWindow):
         )
 
     def on_history_data_edited(self, row: int, display_text: str):
-        storage_text = Validator.normalize_for_storage(display_text)
-
-        if self.history.update(row, storage_text):
+        if self.history.update(row, display_text):
             if row == self.history_table.current_row():
                 self.input_panel.txt_data.setPlainText(display_text)
         else:
@@ -196,7 +193,7 @@ class MainWindow(QMainWindow):
 
     def on_text_changed(self):
 
-        text = self.input_panel.txt_data.text()
+        text = self.input_panel.txt_data.toPlainText()
 
         if not self.validate_input(text):
             # Очищаем предпросмотр при некорректных данных
@@ -224,7 +221,7 @@ class MainWindow(QMainWindow):
 
     def on_add_clicked(self):
 
-        text = self.input_panel.txt_data.text()
+        text = self.input_panel.txt_data.toPlainText()
 
         if not self.validate_input(text):
             return
@@ -343,10 +340,11 @@ class MainWindow(QMainWindow):
         if current_row >= len(records):
             return
 
-        display_data = Validator.normalize_for_display(
+        self.table.setItem(row, 1, QTableWidgetItem(record["data"]))
+
+        self.input_panel.txt_data.setPlainText(
             records[current_row]["data"]
         )
-        self.input_panel.txt_data.setPlainText(display_data)
 
         self.statusBar().showMessage(
             "Данные загружены из истории",

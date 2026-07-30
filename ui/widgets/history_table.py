@@ -8,14 +8,12 @@ from PyQt6.QtWidgets import (
     QGroupBox,
 )
 
-from core.validator import Validator
-
 
 class HistoryTable(QWidget):
     """Таблица истории. Отвечает только за отображение. Не работает с JSON."""
 
     current_row_changed = pyqtSignal(int)
-    data_edited = pyqtSignal(int, str)      # row, display_text
+    data_edited = pyqtSignal(int, str)      # row, text
     comment_edited = pyqtSignal(int, str)   # row, comment
 
     def __init__(self, parent=None):
@@ -75,10 +73,7 @@ class HistoryTable(QWidget):
 
         for row, record in enumerate(records):
             self.table.setItem(row, 0, QTableWidgetItem(str(row + 1)))
-
-            display_data = Validator.normalize_for_display(record["data"])
-            self.table.setItem(row, 1, QTableWidgetItem(display_data))
-
+            self.table.setItem(row, 1, QTableWidgetItem(record["data"]))
             self.table.setItem(
                 row, 2, QTableWidgetItem(record.get("comment", ""))
             )

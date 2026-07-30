@@ -119,7 +119,6 @@ BarcodeGen/
 │   └── widgets/
 │       ├── init.py
 │       ├── history_table.py
-│       ├── info_panel.py
 │       ├── input_panel.py
 │       ├── preview_widget.py
 │       └── zoom_panel.py
@@ -383,4 +382,3 @@ DataMatrix отображается всегда один.
 2. Добавить Settings (сохранение размера окна, последнего zoom и т.д.).
 3. Реализовать экспорт CSV.
 4. Поддержка других типов штрихкодов.
-5. Удалить неиспользуемый info_panel.py (если больше не нужен).
