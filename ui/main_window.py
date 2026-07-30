@@ -3,33 +3,27 @@ from core.history_manager import HistoryManager
 from core.csv_importer import CsvImporter
 from core.validator import Validator
 from ui.widgets.input_panel import InputPanel
+from ui.widgets.preview_widget import PreviewWidget
+from ui.widgets.zoom_panel import ZoomPanel
+from ui.widgets.history_table import HistoryTable
+from ui.styles.dark_theme import get_dark_stylesheet
 from core.settings import get_app_path
 from pathlib import Path
 import sys
 
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt
-import re
 from PyQt6.QtWidgets import (
     QMainWindow,
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
     QPushButton,
-    QLabel,
     QGroupBox,
     QSplitter,
-    QSlider,
-    QTableWidget,
-    QTableWidgetItem,
-    QHeaderView,
     QMessageBox,
-    QFileDialog
+    QFileDialog,
 )
-
-
-from ui.widgets.preview_widget import PreviewWidget
-from ui.styles.dark_theme import get_dark_stylesheet
 
 
 class MainWindow(QMainWindow):
@@ -118,27 +112,11 @@ class MainWindow(QMainWindow):
 
         # Правая панель
 
-        zoom_group = QGroupBox("Масштаб")
-
-        zoom_layout = QVBoxLayout()
-
-        self.lbl_zoom = QLabel("100 %")
-        self.lbl_zoom.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.slider_zoom = QSlider(Qt.Orientation.Vertical)
-
-        self.slider_zoom.setMinimum(50)
-        self.slider_zoom.setMaximum(500)
-        self.slider_zoom.setValue(100)
-
-        zoom_layout.addWidget(self.lbl_zoom)
-        zoom_layout.addWidget(self.slider_zoom)
-
-        zoom_group.setLayout(zoom_layout)
+        self.zoom_panel = ZoomPanel()
 
         splitter.addWidget(buttons_group)
         splitter.addWidget(self.preview_widget)
-        splitter.addWidget(zoom_group)
+        splitter.addWidget(self.zoom_panel)
 
         splitter.setSizes([250, 900, 150])
 
@@ -150,49 +128,11 @@ class MainWindow(QMainWindow):
         # История
         # ==================================================
 
-        history_group = QGroupBox("История")
-
-        history_layout = QVBoxLayout()
-
-        self.table_history = QTableWidget()
-
-        header = self.table_history.horizontalHeader()
-
-        header.setStretchLastSection(False)
-        header.setSectionsMovable(False)
-        header.setCascadingSectionResizes(False)
-
-        self.table_history.setColumnCount(3)
-        self.table_history.setHorizontalHeaderLabels(
-            ["id", "Данные", "Комментарий"]
-        )
-
-        header = self.table_history.horizontalHeader()
-
-        header = self.table_history.horizontalHeader()
-
-        header.setSectionResizeMode(
-            0,
-            QHeaderView.ResizeMode.ResizeToContents
-        )
-
-        header.setSectionResizeMode(
-            1,
-            QHeaderView.ResizeMode.Stretch
-        )
-
-        header.setSectionResizeMode(
-            2,
-            QHeaderView.ResizeMode.ResizeToContents
-        )
-
-        history_layout.addWidget(self.table_history)
-
-        history_group.setLayout(history_layout)
+        self.history_table = HistoryTable()
 
         vertical_splitter.addWidget(splitter)
 
-        vertical_splitter.addWidget(history_group)
+        vertical_splitter.addWidget(self.history_table)
 
         vertical_splitter.setSizes([
             550,
@@ -210,7 +150,7 @@ class MainWindow(QMainWindow):
             self.on_text_changed
         )
 
-        self.slider_zoom.valueChanged.connect(
+        self.zoom_panel.zoom_changed.connect(
             self.on_zoom_changed
         )
 
@@ -230,50 +170,29 @@ class MainWindow(QMainWindow):
             self.on_import_csv_clicked
         )
 
-        self.table_history.currentCellChanged.connect(
+        self.history_table.current_row_changed.connect(
             self.on_history_current_changed
         )
-
-        self.table_history.itemChanged.connect(
-            self.on_history_item_changed
+        self.history_table.data_edited.connect(
+            self.on_history_data_edited
+        )
+        self.history_table.comment_edited.connect(
+            self.on_history_comment_edited
         )
 
-    def on_history_item_changed(self, item):
+    def on_history_data_edited(self, row: int, display_text: str):
+        storage_text = Validator.normalize_for_storage(display_text)
 
-        row = item.row()
+        if self.history.update(row, storage_text):
+            if row == self.history_table.current_row():
+                self.input_panel.txt_data.setPlainText(display_text)
+        else:
+            self.update_history_table()
+            self.statusBar().showMessage("Такая запись уже существует", 3000)
 
-        # Изменили данные
-        if item.column() == 1:
-
-            text = item.text()
-
-            if self.history.update(row, text):
-
-                if row == self.table_history.currentRow():
-                    self.input_panel.txt_data.setText(text)
-
-            else:
-
-                self.update_history_table()
-
-                self.statusBar().showMessage(
-                    "Такая запись уже существует",
-                    3000
-                )
-
-            return
-
-        # Изменили комментарий
-        if item.column() == 2:
-            self.history.update_comment(
-                row,
-                item.text()
-            )
-
-            self.statusBar().showMessage(
-                "Комментарий сохранён",
-                1500
-            )
+    def on_history_comment_edited(self, row: int, comment: str):
+        self.history.update_comment(row, comment)
+        self.statusBar().showMessage("Комментарий сохранён", 1500)
 
     def on_text_changed(self):
 
@@ -300,15 +219,8 @@ class MainWindow(QMainWindow):
         self.input_panel.txt_data.setStyleSheet("")
         return True
 
-    def on_zoom_changed(self, value):
-
-        self.lbl_zoom.setText(
-            f"{value} %"
-        )
-
-        self.preview_widget.set_scale(
-            value
-        )
+    def on_zoom_changed(self, value: int):
+        self.preview_widget.set_scale(value)
 
     def on_add_clicked(self):
 
@@ -335,7 +247,7 @@ class MainWindow(QMainWindow):
 
     def on_delete_clicked(self):
 
-        row = self.table_history.currentRow()
+        row = self.history_table.current_row()
 
         if row < 0:
             return
@@ -421,66 +333,20 @@ class MainWindow(QMainWindow):
         )
 
     def update_history_table(self):
+        self.history_table.update_records(self.history.get_all())
 
-        self.table_history.blockSignals(True)
-
-        records = self.history.get_all()
-
-        self.table_history.setRowCount(len(records))
-
-        for row, record in enumerate(records):
-            self.table_history.setItem(
-                row,
-                0,
-                QTableWidgetItem(str(row + 1))
-            )
-
-            self.table_history.setItem(
-                row,
-                1,
-                QTableWidgetItem(record["data"])
-            )
-
-            self.table_history.setItem(
-                row,
-                2,
-                QTableWidgetItem(record.get("comment", ""))
-            )
-
-        self.table_history.resizeColumnsToContents()
-
-        header = self.table_history.horizontalHeader()
-
-        free_space = (
-                self.table_history.viewport().width()
-                - self.table_history.columnWidth(0)
-                - self.table_history.columnWidth(2)
-        )
-
-        if free_space > self.table_history.columnWidth(1):
-            self.table_history.setColumnWidth(1, free_space)
-
-        self.table_history.blockSignals(False)
-
-    def on_history_current_changed(
-            self,
-            current_row,
-            current_column,
-            previous_row,
-            previous_column
-    ):
-
+    def on_history_current_changed(self, current_row: int):
         if current_row < 0:
             return
 
         records = self.history.get_all()
-
         if current_row >= len(records):
             return
 
-        self.input_panel.txt_data.setText(
+        display_data = Validator.normalize_for_display(
             records[current_row]["data"]
         )
+        self.input_panel.txt_data.setPlainText(display_data)
 
         self.statusBar().showMessage(
             "Данные загружены из истории",
